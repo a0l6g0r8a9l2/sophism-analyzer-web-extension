@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Sophism Analyzer",
+  "version": "1.0.0",
+  "description": "Detect logical fallacies and manipulations in YouTube videos using AI",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["src/content/index.js"],
+      "css": ["src/content/styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  }
+}

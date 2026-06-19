@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophism Analyzer</title>
+  <link rel="stylesheet" href="./popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Sophism Analyzer</h1>
+    <p class="description">Detect logical fallacies in YouTube videos using AI</p>
+    
+    <div class="form-group">
+      <label for="apiKey">Gemini API Key</label>
+      <input type="password" id="apiKey" placeholder="Enter your API key">
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="help-link">
+        Get API key from Google AI Studio
+      </a>
+    </div>
+
+    <div class="form-group">
+      <label for="language">Analysis Language</label>
+      <select id="language">
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+        <option value="zh">中文 (简体)</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+
+    <button id="saveBtn" class="btn-primary">Save</button>
+    
+    <div id="status" class="status hidden"></div>
+  </div>
+
+  <script type="module" src="./popup.ts"></script>
+</body>
+</html>

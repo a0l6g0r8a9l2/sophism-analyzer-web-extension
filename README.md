@@ -63,8 +63,8 @@ The extension detects and categorizes three types of fallacies:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sophism-analyzer.git
-cd sophism-analyzer
+git clone https://github.com/yourusername/sophism-analyzer-web-extension.git
+cd sophism-analyzer-web-extension
 ```
 
 2. Install dependencies:
@@ -145,7 +145,7 @@ npm run preview
 #### Project Structure
 
 ```
-sophism-analyzer/
+sophism-analyzer-web-extension/
 ├── manifest.json              # Manifest V3 extension configuration
 ├── vite.config.ts             # Vite build configuration
 ├── package.json
@@ -263,7 +263,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ### Support
 
-Found a bug or have a feature request? Please open an [issue on GitHub](https://github.com/yourusername/sophism-analyzer/issues).
+Found a bug or have a feature request? Please open an [issue on GitHub](https://github.com/yourusername/sophism-analyzer-web-extension/issues).
 
 ### Acknowledgments
 
@@ -330,8 +330,8 @@ Sophism Analyzer — это расширение для Chrome, которое �
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/yourusername/sophism-analyzer.git
-cd sophism-analyzer
+git clone https://github.com/yourusername/sophism-analyzer-web-extension.git
+cd sophism-analyzer-web-extension
 ```
 
 2. Установите зависимости:
@@ -412,7 +412,7 @@ npm run preview
 #### Структура проекта
 
 ```
-sophism-analyzer/
+sophism-analyzer-web-extension/
 ├── manifest.json              # Конфигурация Manifest V3
 ├── vite.config.ts             # Конфигурация Vite
 ├── package.json
@@ -530,7 +530,7 @@ sophism-analyzer/
 
 ### Поддержка
 
-Нашли баг или есть идея? Откройте [issue на GitHub](https://github.com/yourusername/sophism-analyzer/issues).
+Нашли баг или есть идея? Откройте [issue на GitHub](https://github.com/yourusername/sophism-analyzer-web-extension/issues).
 
 ### Благодарности
 

@@ -43,5 +43,4 @@ coverage/
 dist-ssr/
 
 # Project-specific files
-AGENTS.md
 User flow.md

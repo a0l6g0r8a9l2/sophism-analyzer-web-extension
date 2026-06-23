@@ -41,18 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Future Roadmap
 
 ### Planned Features
-- [ ] Caching of analysis results
-- [ ] Browser persistence across sessions
-- [ ] Video transcript analysis option
-- [ ] Custom fallacy definitions
-- [ ] Export analysis results
-- [ ] Support for other video platforms
-- [ ] Integration with fact-checking APIs
 - [ ] Community-driven fallacy database
+- [ ] Integration with an API implementing a video analysis queue (the most popular video is analyzed first)
+- [ ] Support for analyzing large videos by splitting them into chunks
+- [ ] Caching of analysis results
+- [ ] Export analysis results
+- [ ] Integration with fact-checking APIs
 
 ### Improvements
+- [ ] Eye cathing and lite desing
 - [ ] Performance optimization for large videos
 - [ ] Enhanced error messages and user guidance
 - [ ] Dark/light theme toggle
 - [ ] Keyboard shortcuts
-- [ ] Settings panel with advanced options
+- [x] Settings panel with advanced options

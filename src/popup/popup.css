@@ -127,6 +127,14 @@ select:focus {
   color: #c5221f;
 }
 
+.disclaimer {
+  margin-top: 16px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #888;
+  text-align: center;
+}
+
 .hidden {
   display: none;
 }

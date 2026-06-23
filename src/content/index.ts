@@ -10,6 +10,7 @@ let currentVideoId: string | null = null;
 let currentFallacies: Fallacy[] = [];
 let isAnalyzing = false;
 let initialized = false;
+let cardDisplayTimeMs = 10 * 1000;
 
 function resetState(): void {
   currentVideoId = null;
@@ -44,6 +45,20 @@ function injectUI(): void {
   }
 }
 
+async function loadCardDisplayTime(): Promise<void> {
+  const data = await chrome.storage.local.get("cardDisplayTime");
+  if (data.cardDisplayTime != null) {
+    cardDisplayTimeMs = data.cardDisplayTime * 1000;
+  }
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.cardDisplayTime) {
+    const newValue = changes.cardDisplayTime.newValue;
+    cardDisplayTimeMs = (newValue != null ? newValue : 10) * 1000;
+  }
+});
+
 function setupVideoTimeUpdate(): void {
   const video = document.querySelector("video");
   if (!video) return;
@@ -66,7 +81,7 @@ function setupVideoTimeUpdate(): void {
         
         setTimeout(() => {
           hideFallacyCard();
-        }, 10000);
+        }, cardDisplayTimeMs);
         break;
       }
     }
@@ -150,6 +165,8 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
 function init(): void {
   if (initialized) return;
   initialized = true;
+
+  loadCardDisplayTime();
 
   const checkForPlayer = setInterval(() => {
     const videoId = getCurrentVideoId();

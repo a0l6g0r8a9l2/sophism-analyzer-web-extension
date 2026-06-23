@@ -29,6 +29,26 @@
       </select>
     </div>
 
+    <div class="form-group">
+      <label for="cardDisplayTime">Card Display Time (seconds)</label>
+      <input type="number" id="cardDisplayTime" min="1" max="600" placeholder="10">
+    </div>
+
+    <div class="form-group">
+      <label for="apiRetries">API Retries</label>
+      <input type="number" id="apiRetries" min="0" max="10" placeholder="2">
+    </div>
+
+    <div class="form-group">
+      <label for="apiTimeout">API Timeout (seconds)</label>
+      <input type="number" id="apiTimeout" min="5" max="300" placeholder="50">
+    </div>
+
+    <div class="form-group">
+      <label for="apiRetryDelay">Retry Delay (seconds)</label>
+      <input type="number" id="apiRetryDelay" min="1" max="120" placeholder="10">
+    </div>
+
     <button id="saveBtn" class="btn-primary">Save</button>
     
     <div id="status" class="status hidden"></div>

@@ -43,6 +43,21 @@ input[type="password"]:focus {
   border-color: #4285f4;
 }
 
+input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
 select {
   width: 100%;
   padding: 10px 12px;

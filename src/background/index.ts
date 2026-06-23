@@ -1,5 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import type { AnalysisResult, Fallacy, Language, Message } from "../shared/types";
+import {
+  API_RETRIES_DEFAULT,
+  API_TIMEOUT_DEFAULT,
+  API_RETRY_DELAY_DEFAULT,
+} from "../shared/types";
 
 if (__DEBUG__) {
   console.log("[BG] Background script loaded");
@@ -14,7 +19,15 @@ const LANGUAGE_NAMES: Record<Language, string> = {
 
 function buildPrompt(language: Language): string {
   const langName = LANGUAGE_NAMES[language];
+  const now = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZoneName: "short",
+  });
   return `You are an expert in logic, rhetoric, and argumentation. Analyze this YouTube video for logical fallacies, sophisms, and manipulative techniques used by the speaker.
+
+Current date: ${now}. Use this to correctly distinguish between predictions that have already come true, current facts, and claims about the future.
 
 IMPORTANT: Respond ONLY in ${langName}. Every response field must be in ${langName}.
 
@@ -84,6 +97,15 @@ async function getLanguage(): Promise<Language> {
   return data.language || "en";
 }
 
+async function getApiSettings(): Promise<{ maxRetries: number; timeoutMs: number; retryDelayMs: number }> {
+  const data = await chrome.storage.local.get(["apiRetries", "apiTimeout", "apiRetryDelay"]);
+  return {
+    maxRetries: data.apiRetries ?? API_RETRIES_DEFAULT,
+    timeoutMs: (data.apiTimeout ?? API_TIMEOUT_DEFAULT) * 1000,
+    retryDelayMs: (data.apiRetryDelay ?? API_RETRY_DELAY_DEFAULT) * 1000,
+  };
+}
+
 async function analyzeVideo(videoId: string, videoUrl: string): Promise<AnalysisResult> {
   const apiKey = await getApiKey();
   
@@ -93,13 +115,11 @@ async function analyzeVideo(videoId: string, videoUrl: string): Promise<Analysis
 
   const language = await getLanguage();
   const prompt = buildPrompt(language);
+  const { maxRetries, timeoutMs, retryDelayMs } = await getApiSettings();
 
-  const MAX_RETRIES = 2;
-  const TIMEOUT_MS = 50000; // 50 seconds
-  const RETRY_DELAY_MS = 10000; // 10 seconds
   const RETRYABLE_ERRORS = ["429", "503", "UNAVAILABLE", "TIMEOUT"];
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const ai = new GoogleGenAI({ apiKey });
 
@@ -112,9 +132,8 @@ async function analyzeVideo(videoId: string, videoUrl: string): Promise<Analysis
         { text: prompt },
       ];
 
-      // Create a promise that rejects after timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("API request timeout")), TIMEOUT_MS);
+        setTimeout(() => reject(new Error("API request timeout")), timeoutMs);
       });
 
       const response = await Promise.race([
@@ -162,9 +181,9 @@ async function analyzeVideo(videoId: string, videoUrl: string): Promise<Analysis
       const errorStr = errorMsg.toUpperCase();
       const isRetryable = RETRYABLE_ERRORS.some(err => errorStr.includes(err));
       
-      if (isRetryable && attempt < MAX_RETRIES) {
-        console.log(`[BG] Attempt ${attempt + 1} failed (${errorMsg}), retrying after ${RETRY_DELAY_MS}ms...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      if (isRetryable && attempt < maxRetries) {
+        console.log(`[BG] Attempt ${attempt + 1} failed (${errorMsg}), retrying after ${retryDelayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
         continue;
       }
       

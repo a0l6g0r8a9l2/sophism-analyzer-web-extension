@@ -40,14 +40,15 @@ npm run preview    # preview production build
 ### Message protocol (`Message` union in `shared/types.ts`)
 
 - Content → Background: `ANALYZE_VIDEO` `{ videoId, videoUrl }`
-- Background → Content (via `chrome.tabs.sendMessage`): `ANALYSIS_RESULT` `{ result }` | `ANALYSIS_ERROR` `{ error }`
+- Background → Content (via `chrome.tabs.sendMessage`): `ANALYSIS_RESULT` `{ result }` | `ANALYSIS_ERROR` `{ error }` | `RETRYING` `{ videoId, attempt, maxAttempts }`
+- Background → Content (request/response): `GET_TRANSCRIPT` `{ videoId, language }` → responds with `TRANSCRIPT` `{ videoId, segments }` (`segments` is `TranscriptSegment[] | null`; `null` means no transcript available, background then degrades to video-only analysis)
 - Popup/Content → Background: `GET_API_KEY_STATUS` → responds with `API_KEY_STATUS` `{ hasKey }`
 
-Async listeners must `return true` to keep the `sendResponse` channel open. The background handler sends results back to `sender.tab.id` rather than using `sendResponse`, because analysis outlives the listener invocation.
+Async listeners must `return true` to keep the `sendResponse` channel open. The background handler sends results back to `sender.tab.id` rather than using `sendResponse`, because analysis outlives the listener invocation. `analyzeVideo` takes the originating `tabId` so it can request the transcript from that tab's content script and send `RETRYING` toasts there.
 
 ### Storage schema (`chrome.storage.local`)
 
-`apiKey: string`, `language: Language` (`"en"|"ru"|"zh"|"es"`), `cardDisplayTime: number` (seconds), `apiRetries: number`, `apiTimeout: number` (seconds), `apiRetryDelay: number` (seconds). Defaults and bounds live in `shared/types.ts` — reference those constants instead of literals.
+`apiKey: string`, `language: Language` (`"en"|"ru"|"zh"|"es"`), `mediaResolution: MediaResolution` (`"low"|"medium"|"high"`, default `medium`), `cardDisplayTime: number` (seconds), `errorDisplayTime: number` (seconds, default 3, 1–60), `apiRetries: number`, `apiTimeout: number` (seconds), `apiRetryDelay: number` (seconds), `temperature: number` (0–2, default 0.2), `thinkingBudget: number` (tokens, 0 = off, default 0; presets off/low=1024/medium=4096/high=12288), `thinkingInclude: boolean` (default false). Defaults and bounds live in `shared/types.ts` — reference those constants instead of literals.
 
 ## Conventions to Follow
 
@@ -62,10 +63,14 @@ Async listeners must `return true` to keep the `sendResponse` channel open. The 
 ## Gemini integration specifics
 
 - Model ID: `gemini-3.5-flash` (hardcoded in `background/index.ts`).
-- The prompt is built by `buildPrompt(language)` and is the contract for the JSON schema returned (`fallacies[]` with `timestamp`, `type`, `category`, `quote`, `label`, `brief`, `severity`, plus top-level `summary`). If you change the schema, update **both** the prompt and the parser, and update `Fallacy` in `shared/types.ts`.
+- The call passes `config: { mediaResolution, temperature, responseMimeType: "application/json", responseSchema, thinkingConfig? }`. `mediaResolution` is mapped from the user's `mediaResolution` storage key (`low`/`medium`/`high`) to the SDK's `MediaResolution` enum (`MEDIA_RESOLUTION_LOW` = 64 tokens/frame, `MEDIUM` = 256, `HIGH` = 256 with zoom reframing). Low lets long videos fit the context window at the cost of per-frame detail. The mapping table `MEDIA_RESOLUTION_MAP` is the single place to update if the SDK enum names change. `thinkingConfig` is set only when `thinkingBudget > 0` (`{ thinkingBudget, includeThoughts }`).
+- Structured output: `responseMimeType: "application/json"` + `responseSchema` (built by `buildResponseSchema()`) force valid JSON matching the `Fallacy` shape. `type`, `category`, `severity` are closed enums in the schema. The parser (`parseAnalysisResponse`) still keeps a regex-extraction fallback for non-JSON-wrapped payloads and validates enum values defensively.
+- The prompt is built by `buildPrompt(language, hasTranscript)` and is the contract for the JSON schema returned (`fallacies[]` with `timestamp`, `type`, `category`, `quote`, `label`, `brief`, `severity`, plus top-level `summary`). `FALLACY_TYPES` (17 canonical ids) and `FALLACY_DEFINITIONS` live in `shared/types.ts` and are injected into the prompt; the parser validates `type` against this list and falls back to `"Unknown Fallacy"`. If you change the schema, update **both** the prompt, `buildResponseSchema`, the parser, and `Fallacy` in `shared/types.ts`.
+- Transcript: `analyzeVideo` requests the transcript from the originating tab via `GET_TRANSCRIPT`, renders it via `buildTranscriptText` (with a char budget), and injects it as a text part so the model anchors `timestamp` to real segment starts. `fileData` declares `mimeType: "video/*"`. When no transcript is available, the call degrades to video-only.
 - `category` is validated against the three fixed strings; `severity` against `low|medium|high`. Unknown values fall back to safe defaults — preserve this defensive pattern when extending.
 - Current date is injected into the prompt so the model can distinguish past predictions from future claims. Keep this.
-- Retryable errors: `429`, `503`, `UNAVAILABLE`, `TIMEOUT`. User-facing error strings are rewritten for `429`/quota and `503`/overload cases — extend this mapping thoughtfully when adding new error handling.
+- Retryable errors: `429`, `503`, `UNAVAILABLE`, `TIMEOUT`, `Failed to parse AI response`, `Invalid response format`, `Empty response`. On retryable JSON-parse failures, the previous bad response is fed back to the model with a corrective instruction (`lastBadResponse`). User-facing error strings are rewritten for `429`/quota and `503`/overload cases — extend this mapping thoughtfully when adding new error handling. Final errors are thrown as `AnalysisError` carrying `retriesAttempted`; the listener appends `(after N attempts)` when `retriesAttempted > 0`. A `RETRYING` message is sent to the content tab before each retry sleep.
+- Error/retry feedback UI lives in `src/content/toast.ts` (`showToast(variant: "error"|"info", message, displayMs)` / `hideToast()`). Uses `textContent` (never `innerHTML`). `info` = retry in progress (blue accent), `error` = terminal failure (red accent). Display duration is the user's `errorDisplayTime` storage key.
 
 ## Security and Privacy (project-specific)
 

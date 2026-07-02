@@ -224,6 +224,50 @@
   margin-top: 6px;
 }
 
+.sophism-toast {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 320px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.92);
+  border-radius: 8px;
+  color: white;
+  z-index: 1002;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: sophism-slide-in 0.3s ease-out;
+}
+
+.sophism-toast-error {
+  border-left: 4px solid #f44336;
+}
+
+.sophism-toast-info {
+  border-left: 4px solid #4285f4;
+}
+
+.sophism-toast .toast-icon {
+  font-size: 18px;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.sophism-toast-error .toast-icon {
+  color: #f44336;
+}
+
+.sophism-toast-info .toast-icon {
+  color: #4285f4;
+}
+
+.sophism-toast .toast-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #eee;
+}
+
 .sophism-list {
   position: absolute;
   top: 60px;

@@ -205,6 +205,43 @@ The extension automatically detects your browser language. Supported languages:
 
 To manually change the language, update the `language` setting in `chrome.storage.local`.
 
+#### Video Detail Level
+
+Controls how much of each video frame the AI samples — a trade-off between detail and the ability to fit long videos within the model's context limit:
+
+- **Low** — for long videos (30+ min) to fit the context limit.
+- **Medium** — recommended default for most videos.
+- **High** — maximum detail for short videos, uses more context.
+
+To change it, update the `mediaResolution` setting in `chrome.storage.local`.
+
+#### Temperature
+
+Controls the model's randomness for analysis (0–2, default 0.2). Lower values produce stricter, more deterministic and reproducible analysis; higher values allow more creative interpretation. Configurable in the popup.
+
+#### Thinking
+
+Optional deeper-reasoning mode, configurable in the popup with presets:
+
+- **Off** (default) — no thinking budget, fastest and cheapest.
+- **Low (1024)** / **Medium (4096)** / **High (12288)** — allocates a thinking token budget via `config.thinkingConfig`, improving timestamp precision and fallacy-definition accuracy at the cost of latency and tokens.
+- **Include thoughts in response** — when checked, the model's reasoning trace is returned alongside the result (useful for debugging; increases response size).
+
+#### Transcript-based timestamps
+
+When analyzing, the extension asks the YouTube `timedtext` API for a transcript in the selected analysis language (falling back to English) and includes it in the prompt so the model anchors each `timestamp` to a real segment start. If no transcript is available, the extension falls back to video-only multimodal analysis.
+
+#### Error & retry toasts
+
+When the Gemini API fails, the extension shows a toast over the player so the failure is visible (not just a quiet red button):
+
+- **Retry toast** (neutral/blue): "Retrying… (attempt N of M)" — shown while the extension retries transient errors (quota, overload, timeout). Lets you know we are retrying instead of giving up silently.
+- **Error toast** (red): the final error message, shown once retries are exhausted. Appends `(after N attempts)` when the failure followed one or more retries.
+
+#### Error Display Time
+
+`errorDisplayTime` (1–60 s, default 3) controls how long error/retry toasts stay visible. Separate from the fallacy card display time because error messages are brief and a missed toast is non-critical. Configurable in the popup.
+
 #### API Key Storage
 
 - API keys are stored locally in `chrome.storage.local`
@@ -471,6 +508,43 @@ sophism-analyzer-web-extension/
 - Español
 
 Для ручного изменения языка обновите параметр `language` в `chrome.storage.local`.
+
+#### Уровень детализации видео
+
+Управляет тем, какую часть каждого кадра видео анализирует ИИ — компромисс между детализацией и способностью вместить длинные видео в контекст модели:
+
+- **Низкий (Low)** — для длинных видео (30+ мин), чтобы уложиться в лимит контекста.
+- **Средний (Medium)** — рекомендуемое значение по умолчанию для большинства видео.
+- **Высокий (High)** — максимальная детализация для коротких видео, расходует больше контекста.
+
+Для изменения обновите параметр `mediaResolution` в `chrome.storage.local`.
+
+#### Температура (Temperature)
+
+Управляет случайностью модели при анализе (0–2, по умолчанию 0.2). Меньшие значения дают более строгий, детерминированный и воспроизводимый анализ; большие — допускают творческую интерпретацию. Настраивается в popup.
+
+#### Thinking (глубокие размышления)
+
+Опциональный режим более глубокого анализа, настраивается в popup пресетами:
+
+- **Off** (по умолчанию) — без бюджетa размышлений, быстро и дёшево.
+- **Low (1024)** / **Medium (4096)** / **High (12288)** — выделяет бюджет токенов через `config.thinkingConfig`, повышая точность тайм-кодов и определений софизмов ценой задержки и токенов.
+- **Include thoughts in response** — если включено, модель возвращает цепочку рассуждений вместе с результатом (полезно для отладки, увеличивает размер ответа).
+
+#### Тайм-коды на основе транскрипта
+
+При анализе расширение запрашивает у YouTube `timedtext` транскрипт на выбранном языке анализа (с фолбэком на английский) и передаёт его в промпт, чтобы модель привязывала каждый `timestamp` к реальному началу сегмента. Если транскрипта нет — используется только мультимодальный анализ видео.
+
+#### Тосты ошибок и ретраев
+
+При сбое Gemini API расширение показывает тост над плеером, чтобы сбой был заметен (а не только тихо красная кнопка):
+
+- **Тост ретрая** (нейтральный/синий): «Retrying… (attempt N of M)» — показывается, пока расширение повторяет транзиентные ошибки (квота, перегрузка, таймаут). Даёт понять, что мы пробуем снова, а не сдаёмся молча.
+- **Тост ошибки** (красный): финальное сообщение об ошибке, показывается после исчерпания ретраев. Добавляет `(after N attempts)`, если сбой произошёл после одной или более попыток.
+
+#### Время отображения ошибок
+
+`errorDisplayTime` (1–60 c, по умолчанию 3) управляет временем показа тостов ошибок/ретраев. Вынесено отдельно от времени карточек софизмов, потому что сообщения об ошибках краткие, а пропуск тоста не критичен. Настраивается в popup.
 
 #### Хранение API ключей
 

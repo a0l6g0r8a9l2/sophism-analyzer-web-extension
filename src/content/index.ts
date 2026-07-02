@@ -5,12 +5,24 @@ import { createCounter, updateCounter, showCounterPulse, setCounterFallacies } f
 import { showFallacyCard, hideFallacyCard } from "./cards";
 import { createFallacyList, toggleFallacyList } from "./list";
 import { setupNavigationListener, getCurrentVideoId } from "./navigation";
+import { fetchTranscript } from "./transcript";
+import { showToast, hideToast } from "./toast";
+
+/**
+ * Local default for the error/retry toast display time (seconds). Kept here
+ * (not imported from shared/types.ts) so the content script stays free of
+ * runtime imports from shared/types — Vite then keeps the content bundle
+ * self-contained, which MV3 requires (content scripts cannot be ES modules).
+ * Keep this in sync with ERROR_DISPLAY_TIME_DEFAULT in shared/types.ts.
+ */
+const ERROR_DISPLAY_TIME_DEFAULT = 3;
 
 let currentVideoId: string | null = null;
 let currentFallacies: Fallacy[] = [];
 let isAnalyzing = false;
 let initialized = false;
 let cardDisplayTimeMs = 10 * 1000;
+let errorDisplayTimeMs = ERROR_DISPLAY_TIME_DEFAULT * 1000;
 
 function resetState(): void {
   currentVideoId = null;
@@ -18,6 +30,7 @@ function resetState(): void {
   isAnalyzing = false;
   removeMarkers();
   hideFallacyCard();
+  hideToast();
   updateCounter(0);
   updateButtonState("idle");
 }
@@ -46,16 +59,24 @@ function injectUI(): void {
 }
 
 async function loadCardDisplayTime(): Promise<void> {
-  const data = await chrome.storage.local.get("cardDisplayTime");
+  const data = await chrome.storage.local.get(["cardDisplayTime", "errorDisplayTime"]);
   if (data.cardDisplayTime != null) {
     cardDisplayTimeMs = data.cardDisplayTime * 1000;
+  }
+  if (data.errorDisplayTime != null) {
+    errorDisplayTimeMs = data.errorDisplayTime * 1000;
   }
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes.cardDisplayTime) {
+  if (area !== "local") return;
+  if (changes.cardDisplayTime) {
     const newValue = changes.cardDisplayTime.newValue;
     cardDisplayTimeMs = (newValue != null ? newValue : 10) * 1000;
+  }
+  if (changes.errorDisplayTime) {
+    const newValue = changes.errorDisplayTime.newValue;
+    errorDisplayTimeMs = (newValue != null ? newValue : ERROR_DISPLAY_TIME_DEFAULT) * 1000;
   }
 });
 
@@ -138,10 +159,25 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
       console.log("[Content] Received message:", message.type);
     }
 
+    if (message.type === "GET_TRANSCRIPT" && message.videoId) {
+      fetchTranscript(message.videoId, message.language)
+        .then((segments) => {
+          sendResponse({ type: "TRANSCRIPT", videoId: message.videoId, segments });
+        })
+        .catch(() => {
+          sendResponse({ type: "TRANSCRIPT", videoId: message.videoId, segments: null });
+        });
+      return true;
+    }
+
+    if (message.type === "RETRYING") {
+      showToast("info", `Retrying… (attempt ${message.attempt} of ${message.maxAttempts})`, errorDisplayTimeMs);
+    }
+
     if (message.type === "ANALYSIS_RESULT" && message.result) {
       currentFallacies = message.result.fallacies;
       isAnalyzing = false;
-      
+
       updateButtonState("complete");
       updateCounter(currentFallacies.length);
       createMarkers(currentFallacies);
@@ -151,6 +187,7 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     if (message.type === "ANALYSIS_ERROR" && message.error) {
       isAnalyzing = false;
       updateButtonState("error", message.error.error);
+      showToast("error", message.error.error, errorDisplayTimeMs);
     }
   } catch (error: any) {
     if (error.message?.includes("Extension context invalidated")) {

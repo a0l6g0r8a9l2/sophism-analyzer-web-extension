@@ -75,6 +75,22 @@ select:focus {
   border-color: #4285f4;
 }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #444;
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
 .help-link {
   display: inline-block;
   margin-top: 6px;
@@ -85,6 +101,14 @@ select:focus {
 
 .help-link:hover {
   text-decoration: underline;
+}
+
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #666;
 }
 
 .btn-primary {

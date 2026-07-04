@@ -40,6 +40,9 @@ const thinkingSelect = document.getElementById("thinking") as HTMLSelectElement;
 const thinkingIncludeInput = document.getElementById("thinkingInclude") as HTMLInputElement;
 const saveBtn = document.getElementById("saveBtn") as HTMLButtonElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
+const advancedDetails = document.querySelector(
+  'details.section[data-section="advanced"]',
+) as HTMLDetailsElement;
 
 async function loadSettings(): Promise<void> {
   const data = await chrome.storage.local.get([
@@ -54,6 +57,7 @@ async function loadSettings(): Promise<void> {
     "temperature",
     "thinkingBudget",
     "thinkingInclude",
+    "popupAdvancedOpen",
   ]);
   if (data.apiKey) {
     apiKeyInput.value = data.apiKey;
@@ -85,6 +89,9 @@ async function loadSettings(): Promise<void> {
   thinkingSelect.value = budgetToPreset(data.thinkingBudget ?? THINKING_BUDGET_DEFAULT);
   thinkingIncludeInput.checked = data.thinkingInclude ?? THINKING_INCLUDE_DEFAULT;
 
+  advancedDetails.open = data.popupAdvancedOpen === true;
+  updateApiKeyRequiredCue(data.apiKey);
+
   if (
     data.apiKey ||
     data.language ||
@@ -106,6 +113,18 @@ function showStatus(message: string, type: "success" | "error"): void {
   statusEl.textContent = message;
   statusEl.className = `status ${type}`;
 }
+
+function updateApiKeyRequiredCue(value: string | undefined): void {
+  if (value) {
+    apiKeyInput.classList.remove("required");
+  } else {
+    apiKeyInput.classList.add("required");
+  }
+}
+
+advancedDetails.addEventListener("toggle", () => {
+  void chrome.storage.local.set({ popupAdvancedOpen: advancedDetails.open });
+});
 
 saveBtn.addEventListener("click", async () => {
   const apiKey = apiKeyInput.value.trim();
@@ -209,6 +228,8 @@ saveBtn.addEventListener("click", async () => {
       thinkingInclude,
     };
     await chrome.storage.local.set(storageData);
+    // Clear the first-run required cue once a non-empty key is saved.
+    updateApiKeyRequiredCue(apiKey);
     showStatus("Settings saved successfully", "success");
   } catch (error) {
     showStatus("Failed to save settings", "error");

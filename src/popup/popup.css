@@ -1,6 +1,13 @@
+body {
+  margin: 0;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
 .container {
   width: 320px;
   padding: 20px;
+  box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -16,8 +23,58 @@ h1 {
   color: #666;
 }
 
+/* Collapsible sections */
+details.section {
+  border-top: 1px solid #eee;
+}
+
+details.section:first-of-type {
+  border-top: none;
+}
+
+details.section > summary {
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+  color: #1a1a1a;
+  user-select: none;
+}
+
+details.section > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.section > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  margin-right: 4px;
+  color: #4285f4;
+  transition: transform 0.15s ease;
+}
+
+details.section[open] > summary::before {
+  content: "▾";
+}
+
 .form-group {
   margin-bottom: 16px;
+}
+
+.required-cue {
+  color: #c5221f;
+  margin-left: 2px;
+  font-weight: 700;
+}
+
+#apiKey.required {
+  border-color: #c5221f;
+}
+
+#apiKey.required:focus {
+  border-color: #c5221f;
 }
 
 label {
@@ -112,8 +169,12 @@ select:focus {
 }
 
 .btn-primary {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   width: 100%;
   padding: 12px;
+  margin-top: 4px;
   background: #4285f4;
   color: white;
   border: none;

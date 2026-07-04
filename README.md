@@ -195,6 +195,8 @@ The extension uses Chrome's message passing system for communication:
 
 ### Configuration
 
+All settings are exposed in the popup, grouped into four collapsible sections ordered by meaning: **Credentials** (API key), **Analysis quality** (language, temperature, thinking, video detail), **Display** (card and error display times), and **Advanced / API** (retries, timeout, retry delay — collapsed by default, with its open/closed state persisted). The Save button is sticky so it stays visible without scrolling, and an empty API key shows a red required cue on first run.
+
 #### Language Selection
 
 The extension automatically detects your browser language. Supported languages:
@@ -498,6 +500,8 @@ sophism-analyzer-web-extension/
    - `ANALYSIS_ERROR`: Возвращает сообщение об ошибке
 
 ### Конфигурация
+
+Все настройки доступны во всплывающем окне и сгруппированы в четыре сворачиваемые секции по смыслу: **Учётные данные** (API-ключ), **Качество анализа** (язык, температура, режим размышления, уровень детализации видео), **Отображение** (время показа карточек и ошибок) и **Расширенные / API** (повторы, таймаут, задержка повтора — свёрнут по умолчанию, состояние сворачивания сохраняется). Кнопка «Сохранить» закреплена снизу и остаётся видимой без прокрутки, а пустой API-ключ подсвечивается красной меткой обязательного поля при первом запуске, исчезающей после сохранения значения.
 
 #### Выбор языка
 

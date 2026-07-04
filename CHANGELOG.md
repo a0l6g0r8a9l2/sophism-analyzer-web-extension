@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Malformed/empty JSON responses are now retryable; on retry the previous bad response is fed back with a corrective instruction.
 - Terminal error messages now append `(after N attempts)` when the failure followed one or more retries, so the user knows the extension already retried.
 - Background message listener logs are gated behind `__DEBUG__`.
+- Popup settings reorganized into four collapsible sections (Credentials, Analysis quality, Display, Advanced / API) ordered by conceptual meaning rather than chronological addition. The Advanced section is collapsed by default; its open/closed state persists across popup reopens via the new `popupAdvancedOpen` storage key. Save button is now sticky so it stays visible without scrolling. Empty API key shows a red required cue on first run that clears once a value is saved.
 
 
 ## [1.0.0] - 2024-06-19

@@ -67,12 +67,12 @@ function buildResponseSchema(): Schema {
           type: Type.OBJECT,
           properties: {
             timestamp: { type: Type.INTEGER, minimum: 0, description: "Seconds from the start of the video. Must equal the `start` of one of the provided transcript segments when a transcript is provided." },
-            type: { type: Type.STRING, format: "enum", enum: [...FALLACY_TYPES], description: "Exact fallacy identifier from the canonical list provided in the prompt." },
-            category: { type: Type.STRING, format: "enum", enum: [...FALLACY_CATEGORIES] },
+            type: { type: Type.STRING, enum: [...FALLACY_TYPES], description: "Exact fallacy identifier from the canonical list provided in the prompt." },
+            category: { type: Type.STRING, enum: [...FALLACY_CATEGORIES] },
             quote: { type: Type.STRING, description: "EXACT verbatim phrase from the video; do not paraphrase." },
             label: { type: Type.STRING, description: "Short 3-5 word name." },
             brief: { type: Type.STRING, description: "1-sentence explanation of why it is problematic." },
-            severity: { type: Type.STRING, format: "enum", enum: [...SEVERITY_VALUES] },
+            severity: { type: Type.STRING, enum: [...SEVERITY_VALUES] },
           },
           required: ["timestamp", "type", "category", "quote", "label", "brief", "severity"],
         },
@@ -268,11 +268,10 @@ async function analyzeVideo(videoId: string, videoUrl: string, tabId: number | u
     try {
       const ai = new GoogleGenAI({ apiKey });
 
-      const contents: Array<{ fileData?: { fileUri: string; mimeType: string }; text?: string }> = [
+      const contents: Array<{ fileData?: { fileUri: string }; text?: string }> = [
         {
           fileData: {
             fileUri: videoUrl,
-            mimeType: "video/*",
           },
         },
       ];
@@ -336,7 +335,9 @@ async function analyzeVideo(videoId: string, videoUrl: string, tabId: number | u
             maxAttempts: maxRetries + 1,
           });
         }
-        console.log(`[BG] Attempt ${attempt + 1} failed (${errorMsg}), retrying after ${retryDelayMs}ms...`);
+        if (__DEBUG__) {
+          console.log(`[BG] Attempt ${attempt + 1} failed (${errorMsg}), retrying after ${retryDelayMs}ms...`);
+        }
         await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }

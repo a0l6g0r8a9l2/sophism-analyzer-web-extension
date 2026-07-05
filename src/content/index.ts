@@ -129,7 +129,7 @@ function handleAnalyzeClick(): void {
   isAnalyzing = true;
   updateButtonState("loading");
 
-  const videoUrl = window.location.href;
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   if (__DEBUG__) {
     console.log("[Content] Sending ANALYZE_VIDEO for:", videoId);
   }

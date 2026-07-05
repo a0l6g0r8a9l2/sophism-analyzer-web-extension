@@ -18,13 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Gemini responses now use structured output (`responseMimeType: "application/json"` + `responseSchema`) so the model always returns valid JSON matching the `Fallacy` shape.
 - `Fallacy.type` is now a closed enum of 17 canonical identifiers with fixed definitions injected into the prompt; the parser validates against this list and falls back to "Unknown Fallacy" for unknown values.
-- `fileData` now declares `mimeType: "video/*"` for deterministic video classification by the SDK.
+- `fileData` no longer declares `mimeType: "video/*"` — Gemini infers the type from the YouTube watch URL, and an explicit mimeType on a URL-based `fileUri` is rejected with `400 INVALID_ARGUMENT`.
 - The prompt requires EXACT verbatim quotes (no paraphrase) and explicit timestamp anchoring rules.
 - Fallacies with non-finite or negative `timestamp` are now discarded instead of silently coerced to 0.
 - Malformed/empty JSON responses are now retryable; on retry the previous bad response is fed back with a corrective instruction.
 - Terminal error messages now append `(after N attempts)` when the failure followed one or more retries, so the user knows the extension already retried.
 - Background message listener logs are gated behind `__DEBUG__`.
 - Popup settings reorganized into four collapsible sections (Credentials, Analysis quality, Display, Advanced / API) ordered by conceptual meaning rather than chronological addition. The Advanced section is collapsed by default; its open/closed state persists across popup reopens via the new `popupAdvancedOpen` storage key. Save button is now sticky so it stays visible without scrolling. Empty API key shows a red required cue on first run that clears once a value is saved.
+- Shared spacing (`--s-1`…`--s-8`, 4px base), border-radius (`--r-sm` 4px / `--r-md` 8px / `--r-pill`), and focus-ring primitives introduced in both `popup.css` and `content/styles.css`. The inconsistent `6px` radius is eliminated everywhere (now `--r-sm`); inputs, selects, buttons, section summaries, and overlay interactive elements (`.sophism-btn`, `.sophism-marker`, `.sophism-counter`, `.list-item`, `.list-close`) use a `:focus-visible` ring instead of a border-only focus, so mouse clicks no longer show a ring while keyboard users get one.
+
+### Fixed
+- Analysis failed with `400 INVALID_ARGUMENT` because the previous response schema used `format: "enum"` on `type`/`category`/`severity` string fields. The Gemini `Schema.format` field only accepts numeric subtypes (`int32`/`int64`/`float`/`double`); enum constraints are expressed via the `enum` array alone.
+- Analysis failed with `400 Unsupported MIME type: text/html; charset=utf-8` when the active tab URL contained playlist parameters (`?v=…&list=…&index=…`). The content script now sends a clean `https://www.youtube.com/watch?v=VIDEO_ID` URL as `fileData.fileUri` so the Gemini fetcher reaches the video rather than an HTML watch page.
+
+### Added
+- Reusable required-field cue pattern: `.form-group.required` + `<span class="req">*</span>` in the label + `.required` class on the input, currently applied to the Gemini API key. Future required fields can reuse the pattern without custom CSS.
 
 
 ## [1.0.0] - 2024-06-19

@@ -1,3 +1,21 @@
+:root {
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-pill: 9999px;
+
+  --accent: #4285f4;
+  --accent-ring: rgba(66, 133, 244, 0.15);
+  --danger: #c5221f;
+}
+
 body {
   margin: 0;
   max-height: 600px;
@@ -6,19 +24,19 @@ body {
 
 .container {
   width: 320px;
-  padding: 20px;
+  padding: var(--s-5);
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 h1 {
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--s-2) 0;
   font-size: 20px;
   color: #1a1a1a;
 }
 
 .description {
-  margin: 0 0 20px 0;
+  margin: 0 0 var(--s-5) 0;
   font-size: 13px;
   color: #666;
 }
@@ -36,7 +54,7 @@ details.section > summary {
   list-style: none;
   font-size: 14px;
   font-weight: 600;
-  padding: 8px 0;
+  padding: var(--s-2) 0;
   cursor: pointer;
   color: #1a1a1a;
   user-select: none;
@@ -50,8 +68,8 @@ details.section > summary::before {
   content: "▸";
   display: inline-block;
   width: 1em;
-  margin-right: 4px;
-  color: #4285f4;
+  margin-right: var(--s-1);
+  color: var(--accent);
   transition: transform 0.15s ease;
 }
 
@@ -59,27 +77,33 @@ details.section[open] > summary::before {
   content: "▾";
 }
 
-.form-group {
-  margin-bottom: 16px;
+details.section > summary:focus-visible {
+  outline: none;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-.required-cue {
-  color: #c5221f;
+.form-group {
+  margin-bottom: var(--s-4);
+}
+
+.form-group.required > label .req {
+  color: var(--danger);
   margin-left: 2px;
   font-weight: 700;
 }
 
-#apiKey.required {
-  border-color: #c5221f;
+.form-group.required input.required {
+  border-color: var(--danger);
 }
 
-#apiKey.required:focus {
-  border-color: #c5221f;
+.form-group.required input.required:focus-visible {
+  border-color: var(--danger);
 }
 
 label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--s-2);
   font-size: 14px;
   font-weight: 500;
   color: #333;
@@ -87,56 +111,59 @@ label {
 
 input[type="password"] {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--s-2) var(--s-3);
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 14px;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input[type="password"]:focus {
+input[type="password"]:focus-visible {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 input[type="number"] {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--s-2) var(--s-3);
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 14px;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input[type="number"]:focus {
+input[type="number"]:focus-visible {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 select {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--s-2) var(--s-3);
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 14px;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   background: white;
   cursor: pointer;
 }
 
-select:focus {
+select:focus-visible {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 8px;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
   font-size: 13px;
   font-weight: 400;
   color: #444;
@@ -148,12 +175,24 @@ select:focus {
   cursor: pointer;
 }
 
+.checkbox input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  border-radius: var(--r-sm);
+}
+
 .help-link {
   display: inline-block;
-  margin-top: 6px;
+  margin-top: var(--s-2);
   font-size: 12px;
-  color: #4285f4;
+  color: var(--accent);
   text-decoration: none;
+  border-radius: var(--r-sm);
+}
+
+.help-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .help-link:hover {
@@ -162,7 +201,7 @@ select:focus {
 
 .hint {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--s-2);
   font-size: 11px;
   line-height: 1.5;
   color: #666;
@@ -173,16 +212,21 @@ select:focus {
   bottom: 0;
   z-index: 1;
   width: 100%;
-  padding: 12px;
-  margin-top: 4px;
-  background: #4285f4;
+  padding: var(--s-3);
+  margin-top: var(--s-1);
+  background: var(--accent);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .btn-primary:hover {
@@ -195,9 +239,9 @@ select:focus {
 }
 
 .status {
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 6px;
+  margin-top: var(--s-3);
+  padding: var(--s-2);
+  border-radius: var(--r-sm);
   font-size: 13px;
   text-align: center;
 }
@@ -209,11 +253,11 @@ select:focus {
 
 .status.error {
   background: #fce8e6;
-  color: #c5221f;
+  color: var(--danger);
 }
 
 .disclaimer {
-  margin-top: 16px;
+  margin-top: var(--s-4);
   font-size: 11px;
   line-height: 1.4;
   color: #888;

@@ -1,4 +1,4 @@
-import { GoogleGenAI, MediaResolution, Schema, Type } from "@google/genai";
+import { GenerateContentResponse, GoogleGenAI, MediaResolution, Schema, Type } from "@google/genai";
 import type { AnalysisResult, Fallacy, Language, Message, MediaResolution as MediaResolutionKey, TranscriptSegment } from "../shared/types";
 import {
   API_RETRIES_DEFAULT,
@@ -265,6 +265,10 @@ async function analyzeVideo(videoId: string, videoUrl: string, tabId: number | u
   let lastBadResponse: string | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    let apiPromise: Promise<GenerateContentResponse> | undefined;
+    let firstTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    let settleTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
     try {
       const ai = new GoogleGenAI({ apiKey });
 
@@ -287,24 +291,25 @@ async function analyzeVideo(videoId: string, videoUrl: string, tabId: number | u
         lastBadResponse = null;
       }
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("API request timeout")), timeoutMs);
+      apiPromise = ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: contents,
+        config: {
+          mediaResolution: MEDIA_RESOLUTION_MAP[mediaResolution],
+          temperature,
+          responseMimeType: "application/json",
+          responseSchema,
+          thinkingConfig: thinkingBudget > 0 ? { thinkingBudget, includeThoughts: thinkingInclude } : undefined,
+        },
       });
 
-      const response = await Promise.race([
-        ai.models.generateContent({
-          model: "gemini-3.5-flash",
-          contents: contents,
-          config: {
-            mediaResolution: MEDIA_RESOLUTION_MAP[mediaResolution],
-            temperature,
-            responseMimeType: "application/json",
-            responseSchema,
-            thinkingConfig: thinkingBudget > 0 ? { thinkingBudget, includeThoughts: thinkingInclude } : undefined,
-          },
-        }),
-        timeoutPromise,
-      ]);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        firstTimeoutHandle = setTimeout(() => reject(new Error("API request timeout")), timeoutMs);
+      });
+
+      const response = await Promise.race([apiPromise, timeoutPromise]).finally(() => {
+        if (firstTimeoutHandle) clearTimeout(firstTimeoutHandle);
+      });
 
       const text = response.text;
 
@@ -327,6 +332,24 @@ async function analyzeVideo(videoId: string, videoUrl: string, tabId: number | u
       const isRetryable = RETRYABLE_ERRORS.some((err) => errorStr.includes(err.toUpperCase()));
 
       if (isRetryable && attempt < maxRetries) {
+        if (apiPromise) {
+          const settleMs = Math.min(attempt + 2, 3) * timeoutMs;
+          if (__DEBUG__) {
+            console.log(`[BG] Waiting up to ${settleMs}ms for in-flight API call to settle before retry...`);
+          }
+          await Promise.race([
+            apiPromise.then(
+              () => {},
+              () => {},
+            ),
+            new Promise<void>((resolve) => {
+              settleTimeoutHandle = setTimeout(resolve, settleMs);
+            }),
+          ]).finally(() => {
+            if (settleTimeoutHandle) clearTimeout(settleTimeoutHandle);
+          });
+        }
+
         if (tabId) {
           chrome.tabs.sendMessage(tabId, {
             type: "RETRYING",
